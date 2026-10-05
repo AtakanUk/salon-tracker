@@ -1,0 +1,21 @@
+# Keep the build context small, and keep the LOCAL (Windows) node_modules out of
+# the image: copied over the image's Linux packages, it breaks the vite/esbuild
+# build with "installed for another platform".
+node_modules
+**/node_modules
+
+.git
+.gitignore
+.gitattributes
+
+# build output is produced again inside the image
+server/dist
+web/dist
+web/dev-dist
+*.tsbuildinfo
+
+# runtime data and secrets never go into the image
+backups
+.env
+*.log
+.pgdata

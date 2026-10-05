@@ -1,0 +1,76 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  EMPLOYEE
+}
+
+enum SessionStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  name         String
+  username     String    @unique
+  passwordHash String
+  role         Role      @default(EMPLOYEE)
+  locale       String    @default("tr")
+  active       Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  // soft delete: the row stays so past sessions keep showing this person's name
+  deletedAt    DateTime?
+  sessions     Session[]
+}
+
+model Service {
+  id         Int           @id @default(autoincrement())
+  nameTr     String
+  nameDe     String
+  priceCents Int
+  sortOrder  Int           @default(0)
+  active     Boolean       @default(true)
+  // Custom service: the employee types the amount while finishing the session
+  // instead of taking it from the price list. priceCents is unused for these.
+  custom     Boolean       @default(false)
+  createdAt  DateTime      @default(now())
+  items      SessionItem[]
+}
+
+model Session {
+  id         Int           @id @default(autoincrement())
+  employee   User          @relation(fields: [employeeId], references: [id])
+  employeeId Int
+  startedAt  DateTime      @default(now())
+  finishedAt DateTime?
+  status     SessionStatus @default(ACTIVE)
+  editedAt   DateTime?
+  items      SessionItem[]
+
+  @@index([employeeId, status])
+  @@index([startedAt])
+}
+
+model SessionItem {
+  id                 Int     @id @default(autoincrement())
+  session            Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sessionId          Int
+  service            Service @relation(fields: [serviceId], references: [id])
+  serviceId          Int
+  priceCentsSnapshot Int
+  quantity           Int     @default(1)
+  /// what the special job was, e.g. "bridal updo". Only custom services carry one.
+  note               String?
+
+  @@index([sessionId])
+  @@index([serviceId])
+}
