@@ -47,7 +47,7 @@ function parseRange(query: unknown): { range: ExportRange; label: string } {
       // the last day belongs to the range, so cut at the start of the next one
       to: q.to ? startOfDayUtc(addDaysStr(q.to, 1), config.salonTz) : undefined,
     },
-    label: `${q.from ?? 'baslangic'}_${q.to ?? dayKey(new Date(), config.salonTz)}`,
+    label: `${q.from ?? 'start'}_${q.to ?? dayKey(new Date(), config.salonTz)}`,
   };
 }
 
@@ -261,7 +261,7 @@ export default async function systemRoutes(app: FastifyInstance) {
       throw new HttpError(404, 'no_records');
     }
 
-    const base = `friseur-arsiv-${label}`;
+    const base = `friseur-archive-${label}`;
     const [json, workbook] = await Promise.all([buildJsonExport(range), buildWorkbook(range)]);
     const xlsx = Buffer.from(await workbook.xlsx.writeBuffer());
 
@@ -329,7 +329,7 @@ export default async function systemRoutes(app: FastifyInstance) {
   app.post('/test-mail', async () => {
     if (!mailConfigured()) throw new HttpError(400, 'mail_not_configured');
     const result = await sendMail({
-      subject: 'Friseur – test maili',
+      subject: 'Friseur – test mail',
       text: 'This is a test mail. Alerts and backup mails will arrive at this address.',
     });
     if (!result.sent) throw new HttpError(502, 'mail_send_failed');
