@@ -9,6 +9,18 @@ export function euros(cents: number, lang: string): string {
   }).format(cents / 100);
 }
 
+/** 19 -> "19%", "%19" or "19 %" depending on the language. */
+export function percent(value: number, lang: string): string {
+  return new Intl.NumberFormat(intlLocale(lang), { style: 'percent', maximumFractionDigits: 0 }).format(value / 100);
+}
+
+export function decimal(value: number, lang: string, digits = 1): string {
+  return new Intl.NumberFormat(intlLocale(lang), {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  }).format(value);
+}
+
 export function eurosCompact(cents: number, lang: string): string {
   return new Intl.NumberFormat(intlLocale(lang), {
     style: 'currency',

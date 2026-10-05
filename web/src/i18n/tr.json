@@ -101,7 +101,7 @@
     "lastBackup": "Son yedek",
     "running": "Çalışıyor",
     "problem": "Sorun var",
-    "uptime": "açık",
+    "uptimeFor": "{{hours}} sa {{minutes}} dk açık",
     "free": "boş",
     "noBackupYet": "Henüz yedek alınmadı",
     "dailyBackup": "Günlük yedek",

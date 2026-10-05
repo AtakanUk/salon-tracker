@@ -101,7 +101,7 @@
     "lastBackup": "Last backup",
     "running": "Running",
     "problem": "Problem",
-    "uptime": "uptime",
+    "uptimeFor": "up {{hours}} h {{minutes}} min",
     "free": "free",
     "noBackupYet": "No backup yet",
     "dailyBackup": "Daily backup",

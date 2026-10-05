@@ -101,7 +101,7 @@
     "lastBackup": "Letztes Backup",
     "running": "Läuft",
     "problem": "Problem",
-    "uptime": "in Betrieb",
+    "uptimeFor": "seit {{hours}} Std. {{minutes}} Min. in Betrieb",
     "free": "frei",
     "noBackupYet": "Noch kein Backup vorhanden",
     "dailyBackup": "Tägliches Backup",

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api, ApiError } from '../../lib/api';
-import { dateInputValue, euros, fmtDate, fmtDateTime } from '../../lib/format';
+import { dateInputValue, decimal, euros, fmtDate, fmtDateTime, percent } from '../../lib/format';
 import { DISK_WARN_PCT, diskUsedPct } from '../../lib/health';
 import type { SystemStatus } from '../../lib/types';
 import { Badge, Button, Card, ErrorText, Spinner, TextInput } from '../../components/ui';
@@ -270,7 +270,7 @@ export default function System() {
           label={t('system.app')}
           ok
           value={t('system.running')}
-          sub={`${uptimeH} sa ${uptimeM} dk ${t('system.uptime')}`}
+          sub={t('system.uptimeFor', { hours: uptimeH, minutes: uptimeM })}
         />
         <StatusCard
           label={t('system.db')}
@@ -280,10 +280,10 @@ export default function System() {
         <StatusCard
           label={t('system.disk')}
           ok={diskPct !== null ? diskPct < DISK_WARN_PCT : null}
-          value={diskPct !== null ? `%${diskPct}` : '–'}
+          value={diskPct !== null ? percent(diskPct, lang) : '–'}
           sub={
             status.disk
-              ? `${(status.disk.freeMb / 1024).toFixed(1)} GB ${t('system.free')}`
+              ? `${decimal(status.disk.freeMb / 1024, lang)} GB ${t('system.free')}`
               : undefined
           }
         />
