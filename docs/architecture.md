@@ -185,6 +185,6 @@ Errors are `{ "error": "<code>" }`; the web app maps each code to a translated m
   the JWT). Deactivating an account does.
 - There is no per-username lockout, only the per-IP rate limit (plus the gate in public
   mode).
-- The web bundle is about 740 KB, mostly Recharts. Lazy-loading the admin pages would
-  halve the tablet's first load.
+- The web bundle is about 1.1 MB (320 KB gzipped), Recharts the largest part of it.
+  Lazy-loading the admin pages would cut the tablet's first load considerably.
 - Recharts is kept on v2 on purpose; the v3 migration has not been done.

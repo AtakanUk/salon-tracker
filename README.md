@@ -7,7 +7,7 @@
 
 A tablet-first web app for a hair salon. Employees tap **Start** when a customer sits down and pick the services when they finish; the owner gets revenue, employee performance and the service mix on a dashboard. Built for a real salon in Germany and designed to be run by its owner, who is not technical: it backs itself up every night, mails when something is wrong, and has a one-command admin menu for everything else.
 
-**Stack:** React 19 · TypeScript · Vite · Tailwind 4 · Recharts · Fastify 5 · Prisma 6 · PostgreSQL 17 · Docker Compose · Vitest
+**Stack:** React 19 · TypeScript · Vite · Tailwind 4 · Motion · Recharts · Fastify 5 · Prisma 6 · PostgreSQL 17 · Docker Compose · Vitest
 
 ![Owner dashboard](docs/screenshots/dashboard.png)
 
@@ -42,6 +42,7 @@ The owner wanted to see how many customers each employee serves, what each servi
 - `friseur` admin menu over SSH: status, restart, logs, backup, restore, password reset, update, cleanup
 - Two publish modes: private over Tailscale (default) or public on a domain behind a shared password gate, switched with one line in `.env`
 - Interface in Turkish, German and English, chosen per user
+- Light and dark theme, following the device's setting
 
 | Customer in the chair | Finishing | My day |
 | --- | --- | --- |
