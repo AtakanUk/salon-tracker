@@ -53,7 +53,9 @@
     "title": "Giriş",
     "username": "Kullanıcı adı",
     "password": "Şifre",
-    "submit": "Giriş yap"
+    "submit": "Giriş yap",
+    "showPassword": "Şifreyi göster",
+    "hidePassword": "Şifreyi gizle"
   },
   "work": {
     "start": "Müşteri Başlat",
@@ -83,7 +85,8 @@
     "noneToday": "Bugün henüz tamamlanmış müşteri yok.",
     "customHint": "Fiyat listesinde olmayan işler için: ücreti buraya yazın",
     "customNotePlaceholder": "Ne yapıldı? (isteğe bağlı)",
-    "customAmount": "Ücret"
+    "customAmount": "Ücret",
+    "saved": "Kaydedildi"
   },
   "nav": {
     "dashboard": "Genel Bakış",
@@ -109,9 +112,9 @@
     "backupHint": "Her gün bir kez indirip bilgisayarınızda veya telefonunuzda saklayın. Tek dosyada gelir: veritabanı yedeği, Excel tablosu ve teknik kopya.",
     "backupNow": "Şimdi yedek al",
     "backupRunning": "Yedek alınıyor...",
-    "backupDone": "Yedek alındı ✓",
+    "backupDone": "Yedek alındı",
     "testMail": "Test maili gönder",
-    "mailSent": "Mail gönderildi ✓",
+    "mailSent": "Mail gönderildi",
     "mailOff": "E-posta ayarlanmamış",
     "mailOn": "E-posta aktif",
     "recentErrors": "Son hatalar",
@@ -129,7 +132,7 @@
     "cleanupStep1": "Önce yedeği indirin:",
     "cleanupStep2": "Onaylamak için DELETE yazın:",
     "cleanupDelete": "Kayıtları kalıcı olarak sil",
-    "cleanupDone": "{{count}} kayıt silindi ✓",
+    "cleanupDone": "{{count}} kayıt silindi",
     "archive": "Tarih aralığı arşivi",
     "archiveHint": "Sadece belirli bir dönemin kayıtlarını ayrı bir dosya olarak indirin (Excel + geri yüklenebilir kopya). Eski kayıtları silmeden önce o dönemi saklamak için kullanın.",
     "archiveDownload": "Arşivi indir",
@@ -139,8 +142,9 @@
     "restore": "Yedekten geri yükle",
     "restoreHint": "İndirdiğiniz yedeğin (zip) içindeki .json.gz dosyasını seçin. Yalnızca sistemde olmayan kayıtlar eklenir; mevcut kayıtların hiçbiri değişmez veya silinmez.",
     "restoreRun": "Geri yükle",
-    "restoreDone": "{{count}} kayıt geri yüklendi ✓",
-    "restoreNone": "Yedekteki her şey zaten sistemde, eklenecek kayıt yok ✓",
+    "chooseFile": "Yedek dosyasını seçin ya da buraya sürükleyin (.json.gz)",
+    "restoreDone": "{{count}} kayıt geri yüklendi",
+    "restoreNone": "Yedekteki her şey zaten sistemde, eklenecek kayıt yok",
     "restoreDetail": "Dosyada {{found}} satır vardı · eklenen: {{sessions}} kayıt, {{items}} işlem kalemi, {{users}} çalışan",
     "warnDisk": "Sunucu diski %{{pct}} dolu.",
     "warnDiskFull": "Sunucu diski neredeyse doldu (%{{pct}}). Yeni kayıtlar ve yedekler risk altında.",
@@ -210,7 +214,7 @@
     "passwordHint": "En az {{min}} karakter. Kendiniz yazabilir veya \"Yeni üret\" diyebilirsiniz.",
     "passwordNotice": "Bu şifreyi çalışana iletin. Pencereyi kapattığınızda bir daha gösterilmeyecek.",
     "copy": "Kopyala",
-    "copied": "Kopyalandı ✓",
+    "copied": "Kopyalandı",
     "deactivate": "Pasifleştir",
     "activate": "Aktifleştir",
     "delete": "Sil",
@@ -234,7 +238,7 @@
     "currentPassword": "Mevcut şifre",
     "newPassword": "Yeni şifre",
     "repeatPassword": "Yeni şifre (tekrar)",
-    "changed": "Şifreniz değiştirildi ✓"
+    "changed": "Şifreniz değiştirildi"
   },
   "sessions": {
     "title": "Kayıtlar",

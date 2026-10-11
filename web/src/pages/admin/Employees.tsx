@@ -1,11 +1,39 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { AnimatePresence, motion } from 'motion/react';
+import {
+  ArrowCounterClockwise,
+  ArrowsClockwise,
+  CaretRight,
+  Check,
+  Copy,
+  Key,
+  PencilSimple,
+  Plus,
+  Trash,
+} from '@phosphor-icons/react';
 import { useAuth } from '../../auth';
 import { api, ApiError } from '../../lib/api';
 import { MIN_PASSWORD_LENGTH, generatePassword } from '../../lib/password';
 import { euros, fmtDate } from '../../lib/format';
+import { colorMap, useChartTheme } from '../../lib/palette';
 import type { Role, User } from '../../lib/types';
-import { Badge, Button, Card, ErrorText, Field, Modal, Select, Spinner, TextInput, tableCols } from '../../components/ui';
+import {
+  Avatar,
+  Badge,
+  Button,
+  Card,
+  EASE_OUT,
+  ErrorText,
+  Field,
+  Modal,
+  PageHeader,
+  Select,
+  Skeleton,
+  Switch,
+  TextInput,
+  stagger,
+} from '../../components/ui';
 
 interface FormState {
   id?: number;
@@ -33,7 +61,7 @@ const USERNAME_RE = /^[a-zA-Z0-9._-]{2,30}$/;
 
 /** A field's rule, spelled out under it, so it is read before a save is refused. */
 const Hint = ({ text }: { text: string }) => (
-  <span className="block text-xs text-slate-500 mt-1">{text}</span>
+  <span className="block text-[13px] text-ink-3 mt-1.5">{text}</span>
 );
 
 // clipboard needs a secure context; over plain http (local testing) it is missing
@@ -43,6 +71,7 @@ export default function Employees() {
   const { t, i18n } = useTranslation();
   const lang = i18n.language;
   const { user: me } = useAuth();
+  const chart = useChartTheme();
   const [users, setUsers] = useState<User[] | null>(null);
   const [form, setForm] = useState<FormState | null>(null);
   const [reset, setReset] = useState<{ user: User; password: string; done: boolean } | null>(null);
@@ -58,6 +87,9 @@ export default function Employees() {
   useEffect(() => {
     refresh().catch(() => {});
   }, []);
+
+  // the same color each person has in the dashboard's charts
+  const colors = useMemo(() => colorMap((users ?? []).map((u) => u.id), chart.categorical), [users, chart]);
 
   /** Runs a mutation, refreshes the list, and keeps the error in whichever modal is open. */
   async function run(fn: () => Promise<unknown>, after?: () => void) {
@@ -120,152 +152,187 @@ export default function Employees() {
     );
   };
 
-  if (!users) {
-    return (
-      <div className="flex justify-center py-20">
-        <Spinner className="h-8 w-8" />
-      </div>
-    );
-  }
-
-  const live = users.filter((u) => !u.deleted);
-  const deleted = users.filter((u) => u.deleted);
+  const live = users?.filter((u) => !u.deleted) ?? [];
+  const deleted = users?.filter((u) => u.deleted) ?? [];
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-slate-800">{t('employees.title')}</h1>
-        <Button onClick={() => { setForm(emptyForm); setError(null); }}>
-          + {t('employees.add')}
-        </Button>
-      </div>
+    <div className="flex flex-col gap-5">
+      <PageHeader
+        title={t('employees.title')}
+        actions={
+          <Button
+            onClick={() => {
+              setForm(emptyForm);
+              setError(null);
+            }}
+          >
+            <Plus size={16} weight="bold" />
+            {t('employees.add')}
+          </Button>
+        }
+      />
 
-      <Card className="overflow-x-auto">
-        <table className={`w-full text-sm ${tableCols}`}>
-          <thead>
-            <tr className="text-left text-slate-500 border-b border-slate-200">
-              <th className="py-2 font-medium">{t('employees.name')}</th>
-              <th className="py-2 font-medium">{t('employees.username')}</th>
-              <th className="py-2 font-medium text-center">{t('employees.role')}</th>
-              <th className="py-2 font-medium text-center">{t('sessions.status')}</th>
-              <th className="py-2" />
-            </tr>
-          </thead>
-          <tbody>
-            {live.map((u) => (
-              <tr key={u.id} className={`border-b border-slate-100 ${u.active ? '' : 'opacity-60'}`}>
-                <td className="py-2.5 font-semibold text-slate-800">{u.name}</td>
-                <td className="py-2.5 text-slate-600">{u.username}</td>
-                <td className="py-2.5 text-center">
-                  <Badge color={u.role === 'ADMIN' ? 'blue' : 'slate'}>
-                    {u.role === 'ADMIN' ? t('employees.roleAdmin') : t('employees.roleEmployee')}
-                  </Badge>
-                </td>
-                <td className="py-2.5 text-center">
-                  <Badge color={u.active ? 'green' : 'red'}>
-                    {u.active ? t('employees.active') : t('employees.inactive')}
-                  </Badge>
-                </td>
-                <td className="py-2.5">
-                  <div className="flex gap-1.5 justify-end flex-wrap">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => {
-                        setError(null);
-                        setForm({
-                          id: u.id,
-                          name: u.name,
-                          username: u.username,
-                          password: '',
-                          role: u.role,
-                          active: u.active,
-                        });
-                      }}
-                    >
-                      {t('common.edit')}
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => {
-                        setError(null);
-                        setCopied(false);
-                        setReset({ user: u, password: generatePassword(), done: false });
-                      }}
-                    >
-                      {t('employees.resetPassword')}
-                    </Button>
-                    {u.id !== me?.id && (
-                      <Button
-                        variant="dangerOutline"
-                        size="sm"
-                        onClick={() => { setError(null); setRemove(u); }}
-                      >
-                        {t('employees.delete')}
-                      </Button>
-                    )}
-                  </div>
-                </td>
-              </tr>
+      <Card padding="p-2 sm:p-3">
+        {!users ? (
+          <div className="flex flex-col gap-2 p-3">
+            {[0, 1, 2].map((i) => (
+              <Skeleton key={i} className="h-16" />
             ))}
-          </tbody>
-        </table>
+          </div>
+        ) : (
+          <ul>
+            {live.map((u, i) => (
+              <li
+                key={u.id}
+                style={stagger(i)}
+                className={`stagger flex flex-wrap items-center gap-x-4 gap-y-3 rounded-2xl px-3 sm:px-4 py-3.5 transition-colors duration-200 hover:bg-fill/50 ${
+                  i > 0 ? 'border-t border-line hover:border-transparent' : ''
+                }`}
+              >
+                <div className={`flex items-center gap-3 min-w-0 grow ${u.active ? '' : 'opacity-55'}`}>
+                  <Avatar name={u.name} color={colors.get(u.id)} className="size-11 text-[15px]" />
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[16px] font-semibold text-ink">{u.name}</span>
+                      {u.role === 'ADMIN' && (
+                        <Badge color="blue">{t('employees.roleAdmin')}</Badge>
+                      )}
+                      <Badge color={u.active ? 'green' : 'red'} dot>
+                        {u.active ? t('employees.active') : t('employees.inactive')}
+                      </Badge>
+                    </div>
+                    <div className="text-[14px] text-ink-2 truncate">@{u.username}</div>
+                  </div>
+                </div>
+                <div className="flex gap-1.5 flex-wrap ml-14 sm:ml-0">
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => {
+                      setError(null);
+                      setForm({
+                        id: u.id,
+                        name: u.name,
+                        username: u.username,
+                        password: '',
+                        role: u.role,
+                        active: u.active,
+                      });
+                    }}
+                  >
+                    <PencilSimple size={15} weight="bold" />
+                    {t('common.edit')}
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    onClick={() => {
+                      setError(null);
+                      setCopied(false);
+                      setReset({ user: u, password: generatePassword(), done: false });
+                    }}
+                  >
+                    <Key size={15} weight="bold" />
+                    {t('employees.resetPassword')}
+                  </Button>
+                  {u.id !== me?.id && (
+                    <Button
+                      variant="dangerOutline"
+                      size="sm"
+                      onClick={() => {
+                        setError(null);
+                        setRemove(u);
+                      }}
+                    >
+                      <Trash size={15} weight="bold" />
+                      {t('employees.delete')}
+                    </Button>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </Card>
 
       {deleted.length > 0 && (
-        <Card>
+        <Card padding="p-2 sm:p-3" spotlight={false}>
           <button
             type="button"
-            className="w-full text-left text-sm font-semibold text-slate-600"
+            aria-expanded={showDeleted}
+            className="w-full flex items-center gap-2.5 rounded-xl px-3 h-11 text-left text-[15px] font-semibold text-ink-2 hover:text-ink hover:bg-fill/50 transition-colors cursor-pointer"
             onClick={() => setShowDeleted((v) => !v)}
           >
-            {showDeleted ? '▾' : '▸'} {t('employees.deletedAccounts')} ({deleted.length})
+            <CaretRight
+              size={14}
+              weight="bold"
+              className={`transition-transform duration-300 ease-out-expo ${showDeleted ? 'rotate-90' : ''}`}
+            />
+            {t('employees.deletedAccounts')}
+            <span className="ml-1 inline-grid place-items-center min-w-6 h-6 px-1.5 rounded-full bg-fill text-[12px] text-ink-2">
+              {deleted.length}
+            </span>
           </button>
-          {showDeleted && (
-            <>
-              <p className="text-xs text-slate-500 mt-2">{t('employees.deletedNote')}</p>
-              <table className={`w-full text-sm mt-2 ${tableCols}`}>
-                <tbody>
+          <AnimatePresence initial={false}>
+            {showDeleted && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.4, ease: EASE_OUT }}
+                className="overflow-hidden"
+              >
+                <p className="text-[13px] text-ink-2 px-3 pt-1 pb-2">{t('employees.deletedNote')}</p>
+                <ul>
                   {deleted.map((u) => (
-                    <tr key={u.id} className="border-t border-slate-100">
-                      <td className="py-2.5 pr-4 font-semibold text-slate-700 whitespace-nowrap">{u.name}</td>
-                      <td className="py-2.5 w-full text-slate-500">{u.username}</td>
-                      <td className="py-2.5">
-                        <div className="flex gap-1.5 justify-end flex-wrap">
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            disabled={busy}
-                            onClick={() => run(() => api(`/users/${u.id}/restore`, { method: 'POST' }))}
-                          >
-                            {t('employees.restore')}
-                          </Button>
-                          <Button
-                            variant="dangerOutline"
-                            size="sm"
-                            disabled={busy}
-                            onClick={async () => {
-                              setError(null);
-                              setPurge({ user: u, impact: null });
-                              try {
-                                setPurge({ user: u, impact: await api<Impact>(`/users/${u.id}/impact`) });
-                              } catch {
-                                // confirmation still works, just without the numbers
-                              }
-                            }}
-                          >
-                            {t('employees.purge')}
-                          </Button>
+                    <li
+                      key={u.id}
+                      className="flex flex-wrap items-center gap-x-4 gap-y-2 px-3 py-3 border-t border-line"
+                    >
+                      <div className="flex items-center gap-3 min-w-0 grow opacity-70">
+                        <Avatar name={u.name} className="size-9 text-[13px]" />
+                        <div className="min-w-0">
+                          <div className="text-[15px] font-semibold text-ink">{u.name}</div>
+                          <div className="text-[13px] text-ink-2 truncate">@{u.username}</div>
                         </div>
-                      </td>
-                    </tr>
+                      </div>
+                      <div className="flex gap-1.5 flex-wrap">
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          disabled={busy}
+                          onClick={() => run(() => api(`/users/${u.id}/restore`, { method: 'POST' }))}
+                        >
+                          <ArrowCounterClockwise size={15} weight="bold" />
+                          {t('employees.restore')}
+                        </Button>
+                        <Button
+                          variant="dangerOutline"
+                          size="sm"
+                          disabled={busy}
+                          onClick={async () => {
+                            setError(null);
+                            setPurge({ user: u, impact: null });
+                            try {
+                              setPurge({ user: u, impact: await api<Impact>(`/users/${u.id}/impact`) });
+                            } catch {
+                              // confirmation still works, just without the numbers
+                            }
+                          }}
+                        >
+                          <Trash size={15} weight="bold" />
+                          {t('employees.purge')}
+                        </Button>
+                      </div>
+                    </li>
                   ))}
-                </tbody>
-              </table>
-              <ErrorText code={!form && !reset && !remove ? error : null} />
-            </>
-          )}
+                </ul>
+                <div className="px-3">
+                  <ErrorText code={!form && !reset && !remove ? error : null} />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </Card>
       )}
 
@@ -304,6 +371,7 @@ export default function Employees() {
                   <TextInput
                     value={form.password}
                     autoComplete="new-password"
+                    className="font-mono"
                     onChange={(e) => setForm({ ...form, password: e.target.value })}
                   />
                   <Button
@@ -311,6 +379,7 @@ export default function Employees() {
                     className="shrink-0"
                     onClick={() => setForm({ ...form, password: generatePassword() })}
                   >
+                    <ArrowsClockwise size={16} weight="bold" />
                     {t('employees.regenerate')}
                   </Button>
                 </div>
@@ -329,15 +398,14 @@ export default function Employees() {
               </Select>
             </Field>
             {form.id && form.id !== me?.id && (
-              <label className="flex items-center gap-2 mb-3">
-                <input
-                  type="checkbox"
+              <div className="flex items-center justify-between gap-3 mb-4 rounded-xl bg-fill/60 px-3.5 py-2.5">
+                <span className="text-[15px] font-medium text-ink">{t('employees.active')}</span>
+                <Switch
                   checked={form.active}
-                  onChange={(e) => setForm({ ...form, active: e.target.checked })}
-                  className="w-5 h-5 accent-emerald-600"
+                  label={t('employees.active')}
+                  onChange={(active) => setForm({ ...form, active })}
                 />
-                <span className="text-sm font-medium text-slate-600">{t('employees.active')}</span>
-              </label>
+              </div>
             )}
             <ErrorText code={error} />
           </>
@@ -371,6 +439,7 @@ export default function Employees() {
                 <TextInput
                   value={reset.password}
                   autoComplete="new-password"
+                  className="font-mono"
                   onChange={(e) => setReset({ ...reset, password: e.target.value })}
                 />
                 <Button
@@ -378,6 +447,7 @@ export default function Employees() {
                   className="shrink-0"
                   onClick={() => setReset({ ...reset, password: generatePassword() })}
                 >
+                  <ArrowsClockwise size={16} weight="bold" />
                   {t('employees.regenerate')}
                 </Button>
               </div>
@@ -387,9 +457,15 @@ export default function Employees() {
           </>
         )}
         {reset?.done && (
-          <>
-            <p className="text-sm text-slate-600 mb-3">{t('employees.passwordNotice')}</p>
-            <div className="rounded-xl bg-slate-100 py-4 text-center text-2xl font-bold text-slate-800 tracking-wide select-all">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.97 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.4, ease: EASE_OUT }}
+            className="pb-2"
+          >
+            <p className="text-[15px] text-ink-2 mb-3">{t('employees.passwordNotice')}</p>
+            {/* monospace: l/1 and O/0 must not be mixed up when it is read out */}
+            <div className="rounded-2xl bg-fill py-5 text-center font-mono text-[26px] font-semibold tracking-[0.06em] text-ink select-all">
               {reset.password}
             </div>
             {canCopy && (
@@ -400,10 +476,15 @@ export default function Employees() {
                   navigator.clipboard.writeText(reset.password).then(() => setCopied(true));
                 }}
               >
+                {copied ? (
+                  <Check size={16} weight="bold" className="text-go-text" />
+                ) : (
+                  <Copy size={16} weight="bold" />
+                )}
                 {copied ? t('employees.copied') : t('employees.copy')}
               </Button>
             )}
-          </>
+          </motion.div>
         )}
       </Modal>
 
@@ -434,27 +515,25 @@ export default function Employees() {
         }
       >
         {purge && (
-          <>
-            <p className="text-sm text-slate-700 mb-3">
-              {t('employees.purgeText', { name: purge.user.name })}
-            </p>
+          <div className="pb-2">
+            <p className="text-[15px] text-ink mb-3">{t('employees.purgeText', { name: purge.user.name })}</p>
             {purge.impact && (
-              <div className="rounded-xl bg-red-50 border border-red-200 p-3 text-sm text-red-800 mb-3">
+              <div className="rounded-2xl bg-danger-soft p-3.5 text-[14px] text-danger-text mb-3">
                 <div className="font-semibold mb-1">{t('employees.purgeImpact')}</div>
-                <div>
+                <div className="tabular-nums">
                   {t('employees.purgeRecords', { count: purge.impact.sessionCount })} ·{' '}
                   {euros(purge.impact.revenueCents, lang)}
                 </div>
                 {purge.impact.firstAt && purge.impact.lastAt && (
-                  <div className="text-red-600">
+                  <div className="opacity-80">
                     {fmtDate(purge.impact.firstAt, lang)} – {fmtDate(purge.impact.lastAt, lang)}
                   </div>
                 )}
               </div>
             )}
-            <p className="text-sm text-slate-500">{t('employees.purgeHint')}</p>
+            <p className="text-[14px] text-ink-2">{t('employees.purgeHint')}</p>
             <ErrorText code={error} />
-          </>
+          </div>
         )}
       </Modal>
 
@@ -500,15 +579,13 @@ export default function Employees() {
         }
       >
         {remove && (
-          <>
-            <p className="text-sm text-slate-700 mb-3">
-              {t('employees.confirmDeleteText', { name: remove.name })}
-            </p>
-            <p className="text-sm text-slate-500">
+          <div className="pb-2">
+            <p className="text-[15px] text-ink mb-3">{t('employees.confirmDeleteText', { name: remove.name })}</p>
+            <p className="text-[14px] text-ink-2">
               {remove.active ? t('employees.deactivateHint') : t('employees.restoreHint')}
             </p>
             <ErrorText code={error} />
-          </>
+          </div>
         )}
       </Modal>
     </div>

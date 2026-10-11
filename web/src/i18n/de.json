@@ -53,7 +53,9 @@
     "title": "Anmeldung",
     "username": "Benutzername",
     "password": "Passwort",
-    "submit": "Anmelden"
+    "submit": "Anmelden",
+    "showPassword": "Passwort anzeigen",
+    "hidePassword": "Passwort verbergen"
   },
   "work": {
     "start": "Kunde starten",
@@ -83,7 +85,8 @@
     "noneToday": "Heute noch keine abgeschlossenen Kunden.",
     "customHint": "Für Arbeiten ohne festen Preis: Betrag hier eintragen",
     "customNotePlaceholder": "Was wurde gemacht? (optional)",
-    "customAmount": "Betrag"
+    "customAmount": "Betrag",
+    "saved": "Gespeichert"
   },
   "nav": {
     "dashboard": "Übersicht",
@@ -109,9 +112,9 @@
     "backupHint": "Einmal täglich herunterladen und auf Ihrem Computer oder Handy aufbewahren. Alles in einer Datei: Datenbank-Backup, Excel-Tabelle und technische Kopie.",
     "backupNow": "Jetzt Backup erstellen",
     "backupRunning": "Backup läuft...",
-    "backupDone": "Backup erstellt ✓",
+    "backupDone": "Backup erstellt",
     "testMail": "Testmail senden",
-    "mailSent": "Mail gesendet ✓",
+    "mailSent": "Mail gesendet",
     "mailOff": "E-Mail nicht eingerichtet",
     "mailOn": "E-Mail aktiv",
     "recentErrors": "Letzte Fehler",
@@ -129,7 +132,7 @@
     "cleanupStep1": "Zuerst das Backup herunterladen:",
     "cleanupStep2": "Zum Bestätigen DELETE eingeben:",
     "cleanupDelete": "Einträge endgültig löschen",
-    "cleanupDone": "{{count}} Einträge gelöscht ✓",
+    "cleanupDone": "{{count}} Einträge gelöscht",
     "archive": "Archiv für einen Zeitraum",
     "archiveHint": "Laden Sie nur die Einträge eines bestimmten Zeitraums als eigene Datei herunter (Excel + wiederherstellbare Kopie). Ideal, um einen Zeitraum zu sichern, bevor Sie ihn löschen.",
     "archiveDownload": "Archiv herunterladen",
@@ -139,8 +142,9 @@
     "restore": "Aus Backup wiederherstellen",
     "restoreHint": "Wählen Sie die Datei .json.gz aus einem heruntergeladenen Backup (Zip). Es werden nur Einträge ergänzt, die im System fehlen; nichts Vorhandenes wird geändert oder gelöscht.",
     "restoreRun": "Wiederherstellen",
-    "restoreDone": "{{count}} Einträge wiederhergestellt ✓",
-    "restoreNone": "Alles aus dem Backup ist bereits im System, nichts zu ergänzen ✓",
+    "chooseFile": "Sicherungsdatei wählen oder hierher ziehen (.json.gz)",
+    "restoreDone": "{{count}} Einträge wiederhergestellt",
+    "restoreNone": "Alles aus dem Backup ist bereits im System, nichts zu ergänzen",
     "restoreDetail": "{{found}} Zeilen in der Datei · ergänzt: {{sessions}} Einträge, {{items}} Positionen, {{users}} Mitarbeiter",
     "warnDisk": "Der Serverspeicher ist zu {{pct}} % belegt.",
     "warnDiskFull": "Der Serverspeicher ist fast voll ({{pct}} %). Neue Einträge und Sicherungen sind gefährdet.",
@@ -210,7 +214,7 @@
     "passwordHint": "Mindestens {{min}} Zeichen. Selbst eintippen oder \"Neu erzeugen\" nutzen.",
     "passwordNotice": "Geben Sie dieses Passwort an die Person weiter. Nach dem Schließen wird es nicht mehr angezeigt.",
     "copy": "Kopieren",
-    "copied": "Kopiert ✓",
+    "copied": "Kopiert",
     "deactivate": "Deaktivieren",
     "activate": "Aktivieren",
     "delete": "Löschen",
@@ -234,7 +238,7 @@
     "currentPassword": "Aktuelles Passwort",
     "newPassword": "Neues Passwort",
     "repeatPassword": "Neues Passwort (wiederholen)",
-    "changed": "Ihr Passwort wurde geändert ✓"
+    "changed": "Ihr Passwort wurde geändert"
   },
   "sessions": {
     "title": "Einträge",

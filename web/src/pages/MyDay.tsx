@@ -1,14 +1,40 @@
 import { useCallback, useEffect, useState } from 'react';
+import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
+import { AnimatePresence } from 'motion/react';
+import { ArrowLeft, Coins, PencilSimple, Scissors, UsersThree } from '@phosphor-icons/react';
 import { useAuth } from '../auth';
 import { api, ApiError } from '../lib/api';
-import { euros, fmtTime, itemLabel } from '../lib/format';
+import { euros, fmtTime, intlLocale, itemLabel } from '../lib/format';
 import type { Board, PickedItem, Service, Session } from '../lib/types';
-import { Button, Card, ErrorText, FullScreenSpinner, Modal } from '../components/ui';
+import {
+  AnimatedNumber,
+  Button,
+  Card,
+  EmptyState,
+  ErrorText,
+  FullScreenSpinner,
+  Modal,
+  stagger,
+} from '../components/ui';
 import ServicePicker from '../components/ServicePicker';
 
 const errCode = (e: unknown) => (e instanceof ApiError ? e.code : 'generic');
+
+function Stat({ icon, label, children, i }: { icon: ReactNode; label: string; children: ReactNode; i: number }) {
+  return (
+    <Card className="stagger" style={stagger(i)}>
+      <div className="flex items-center gap-2.5 text-[14px] font-medium text-ink-2">
+        <span className="grid place-items-center size-8 rounded-xl bg-accent-soft text-accent-text">{icon}</span>
+        {label}
+      </div>
+      <div className="mt-4 text-[34px] sm:text-[40px] font-semibold tracking-[-0.035em] leading-none text-ink">
+        {children}
+      </div>
+    </Card>
+  );
+}
 
 /**
  * The employee's own day: how many customers, how much revenue, every entry,
@@ -104,115 +130,130 @@ export default function MyDay() {
   const { today } = board;
   // shown on its own only while it can still be corrected; the list has it anyway
   const last = board.lastCompletedEditable && board.lastCompleted?.items ? board.lastCompleted : null;
+  const date = new Intl.DateTimeFormat(intlLocale(lang), {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+  }).format(new Date());
 
   return (
-    <div className="min-h-dvh flex flex-col max-w-3xl mx-auto p-4-safe gap-4">
+    <div className="min-h-dvh flex flex-col max-w-3xl mx-auto p-4-safe sm:p-6-safe gap-5">
       {/* header */}
-      <div className="flex items-center gap-3 flex-wrap">
+      <header className="flex flex-col gap-5 animate-enter">
         <Link
           to="/work"
-          className="px-3 py-1.5 text-sm font-semibold rounded-xl border border-slate-300 bg-white text-slate-700"
+          className="self-start inline-flex items-center gap-2 h-9 pl-3 pr-4 rounded-full bg-fill text-[14px] font-semibold text-ink hover:bg-fill-strong transition-colors"
         >
-          ← {t('common.back')}
+          <ArrowLeft size={16} weight="bold" />
+          {t('common.back')}
         </Link>
-        <h1 className="text-xl font-bold text-slate-800">
-          {t('work.myDay')} · {user?.name}
-        </h1>
-      </div>
+        <div>
+          <h1 className="text-[32px] sm:text-[38px] font-semibold tracking-[-0.035em] leading-[1.05] text-balance">
+            {t('work.myDay')}
+          </h1>
+          <p className="mt-1.5 text-[15px] text-ink-2">
+            {user?.name} · {date}
+          </p>
+        </div>
+      </header>
 
       {/* today's numbers */}
-      <div className="grid grid-cols-2 gap-3">
-        <Card className="text-center py-3">
-          <div className="text-sm text-slate-500 font-medium">
-            {t('work.today')} · {t('work.todayCustomers')}
-          </div>
-          <div className="text-3xl font-bold text-slate-800">{today.count}</div>
-        </Card>
-        <Card className="text-center py-3">
-          <div className="text-sm text-slate-500 font-medium">
-            {t('work.today')} · {t('work.todayRevenue')}
-          </div>
-          <div className="text-3xl font-bold text-slate-800">{euros(today.revenueCents, lang)}</div>
-        </Card>
+      <div className="grid grid-cols-2 gap-3 sm:gap-4">
+        <Stat i={1} icon={<UsersThree size={18} />} label={t('work.todayCustomers')}>
+          <AnimatedNumber value={today.count} format={(v) => String(Math.round(v))} />
+        </Stat>
+        <Stat i={2} icon={<Coins size={18} />} label={t('work.todayRevenue')}>
+          <AnimatedNumber value={today.revenueCents} format={(v) => euros(Math.round(v), lang)} />
+        </Stat>
       </div>
 
       <ErrorText code={error} />
 
       {/* last entry, correctable for 30 min */}
       {last && (
-        <Card className="border-2 border-emerald-500">
-          <div className="flex items-center justify-between gap-2">
-            <div>
-              <div className="text-sm font-medium text-slate-500">
+        <Card
+          className="stagger border-accent/40! bg-[linear-gradient(135deg,var(--accent-soft),transparent_60%)]"
+          style={stagger(3)}
+        >
+          <div className="flex items-center justify-between gap-4 flex-wrap">
+            <div className="min-w-0">
+              <div className="text-[13px] font-medium text-ink-2">
                 {t('work.lastSession')} · {fmtTime(last.finishedAt!, lang)}
-                {last.editedAt && <span className="ml-2 text-amber-600">({t('work.edited')})</span>}
+                {last.editedAt && <span className="ml-2 text-warn-text">({t('work.edited')})</span>}
               </div>
-              <div className="text-slate-800 font-semibold mt-1">
+              <div className="text-[17px] font-semibold mt-1 text-ink text-pretty">
                 {last.items!.map((i) => itemLabel(i, lang)).join(', ')}
               </div>
-              <div className="text-lg font-bold text-slate-800 mt-1">{euros(last.totalCents, lang)}</div>
+              <div className="text-[22px] font-semibold tracking-[-0.02em] mt-1 tabular-nums">
+                {euros(last.totalCents, lang)}
+              </div>
             </div>
             <Button variant="secondary" size="lg" disabled={busy} onClick={() => setCorrecting(last)}>
+              <PencilSimple size={18} weight="bold" />
               {t('work.correct')}
             </Button>
           </div>
+          <p className="mt-4 pt-3 border-t border-line text-[13px] text-ink-2">{t('work.editableInfo')}</p>
         </Card>
       )}
-      <p className="text-center text-sm text-slate-400">{t('work.editableInfo')}</p>
 
       {/* the whole day, newest first */}
-      <Card>
-        <div className="font-semibold text-slate-800 mb-1">{t('work.todayList')}</div>
+      <Card className="stagger" style={stagger(4)}>
+        <h2 className="text-[17px] font-semibold tracking-[-0.015em] mb-2">{t('work.todayList')}</h2>
         {today.sessions.length === 0 ? (
-          <p className="text-sm text-slate-500 py-2">{t('work.noneToday')}</p>
+          <EmptyState icon={<Scissors size={22} />}>{t('work.noneToday')}</EmptyState>
         ) : (
-          <ul className="divide-y divide-slate-100">
-            {today.sessions.map((s) => (
-              <li key={s.id} className="py-2.5 flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="text-sm text-slate-500">
+          <ol className="relative">
+            {/* the day's spine */}
+            <span className="absolute left-[5px] top-4 bottom-4 w-px bg-line-strong" aria-hidden="true" />
+            {today.sessions.map((s, i) => (
+              <li key={s.id} className="stagger relative flex items-start gap-4 py-3" style={stagger(5 + i)}>
+                <span className="relative z-10 mt-1.5 size-[11px] shrink-0 rounded-full border-2 border-accent bg-surface" />
+                <div className="min-w-0 grow">
+                  <div className="text-[13px] text-ink-2 tabular-nums">
                     {fmtTime(s.finishedAt!, lang)}
                     {s.durationMinutes !== null && ` · ${s.durationMinutes} ${t('work.minutes')}`}
-                    {s.editedAt && <span className="ml-2 text-amber-600">({t('work.edited')})</span>}
+                    {s.editedAt && <span className="ml-2 text-warn-text">({t('work.edited')})</span>}
                   </div>
-                  <div className="text-slate-800 font-medium">
-                    {(s.items ?? []).map((i) => itemLabel(i, lang)).join(', ')}
+                  <div className="text-[15px] font-medium text-ink mt-0.5 text-pretty">
+                    {(s.items ?? []).map((it) => itemLabel(it, lang)).join(', ')}
                   </div>
                 </div>
-                <div className="font-bold text-slate-800 tabular-nums shrink-0">
-                  {euros(s.totalCents, lang)}
-                </div>
+                <div className="text-[15px] font-semibold tabular-nums shrink-0 mt-4">{euros(s.totalCents, lang)}</div>
               </li>
             ))}
-          </ul>
+          </ol>
         )}
       </Card>
 
       {/* correction dialog */}
-      {correcting && (
-        <ServicePicker
-          services={services}
-          title={t('work.editLastTitle')}
-          initial={correcting.items}
-          busy={busy}
-          error={pickerError}
-          onSave={saveCorrection}
-          onClose={() => {
-            setCorrecting(null);
-            setPickerError(null);
-          }}
-          extraFooter={
-            <Button
-              variant="dangerOutline"
-              size="lg"
-              disabled={busy}
-              onClick={() => setConfirmCancel(correcting)}
-            >
-              {t('work.cancelCompleted')}
-            </Button>
-          }
-        />
-      )}
+      <AnimatePresence>
+        {correcting && (
+          <ServicePicker
+            key="correct"
+            services={services}
+            title={t('work.editLastTitle')}
+            initial={correcting.items}
+            busy={busy}
+            error={pickerError}
+            onSave={saveCorrection}
+            onClose={() => {
+              setCorrecting(null);
+              setPickerError(null);
+            }}
+            extraFooter={
+              <Button
+                variant="dangerOutline"
+                size="lg"
+                disabled={busy}
+                onClick={() => setConfirmCancel(correcting)}
+              >
+                {t('work.cancelCompleted')}
+              </Button>
+            }
+          />
+        )}
+      </AnimatePresence>
 
       {/* cancel confirmation */}
       <Modal
@@ -230,7 +271,7 @@ export default function MyDay() {
           </>
         }
       >
-        <p className="text-slate-600">{t('work.confirmCancelText')}</p>
+        <p className="text-[15px] text-ink-2 pb-2">{t('work.confirmCancelText')}</p>
       </Modal>
     </div>
   );

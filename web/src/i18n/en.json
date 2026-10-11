@@ -53,7 +53,9 @@
     "title": "Sign in",
     "username": "Username",
     "password": "Password",
-    "submit": "Sign in"
+    "submit": "Sign in",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
   },
   "work": {
     "start": "Start customer",
@@ -83,7 +85,8 @@
     "noneToday": "No finished customers yet today.",
     "customHint": "For work without a fixed price: enter the amount here",
     "customNotePlaceholder": "What was done? (optional)",
-    "customAmount": "Amount"
+    "customAmount": "Amount",
+    "saved": "Saved"
   },
   "nav": {
     "dashboard": "Overview",
@@ -109,9 +112,9 @@
     "backupHint": "Download once a day and keep it on your computer or phone. Everything in one file: database dump, Excel sheet and a restorable copy.",
     "backupNow": "Create backup now",
     "backupRunning": "Backup running...",
-    "backupDone": "Backup created ✓",
+    "backupDone": "Backup created",
     "testMail": "Send test mail",
-    "mailSent": "Mail sent ✓",
+    "mailSent": "Mail sent",
     "mailOff": "Email not set up",
     "mailOn": "Email active",
     "recentErrors": "Recent errors",
@@ -129,7 +132,7 @@
     "cleanupStep1": "First download the backup:",
     "cleanupStep2": "Type DELETE to confirm:",
     "cleanupDelete": "Delete records permanently",
-    "cleanupDone": "{{count}} records deleted ✓",
+    "cleanupDone": "{{count}} records deleted",
     "archive": "Archive a date range",
     "archiveHint": "Download only the records of a chosen period as a file of its own (Excel + a restorable copy). Useful for keeping a period before you delete it.",
     "archiveDownload": "Download archive",
@@ -139,8 +142,9 @@
     "restore": "Restore from backup",
     "restoreHint": "Pick the .json.gz file from a downloaded backup (zip). Only records missing from the system are added; nothing that exists is changed or deleted.",
     "restoreRun": "Restore",
-    "restoreDone": "{{count}} records restored ✓",
-    "restoreNone": "Everything in the backup is already in the system, nothing to add ✓",
+    "chooseFile": "Choose the backup file or drop it here (.json.gz)",
+    "restoreDone": "{{count}} records restored",
+    "restoreNone": "Everything in the backup is already in the system, nothing to add",
     "restoreDetail": "{{found}} rows in the file · added: {{sessions}} records, {{items}} items, {{users}} employees",
     "warnDisk": "The server disk is {{pct}}% full.",
     "warnDiskFull": "The server disk is almost full ({{pct}}%). New records and backups are at risk.",
@@ -210,7 +214,7 @@
     "passwordHint": "At least {{min}} characters. Type one or use \"Generate\".",
     "passwordNotice": "Give this password to the person. It is not shown again after you close this window.",
     "copy": "Copy",
-    "copied": "Copied ✓",
+    "copied": "Copied",
     "deactivate": "Deactivate",
     "activate": "Activate",
     "delete": "Delete",
@@ -234,7 +238,7 @@
     "currentPassword": "Current password",
     "newPassword": "New password",
     "repeatPassword": "New password (repeat)",
-    "changed": "Your password has been changed ✓"
+    "changed": "Your password has been changed"
   },
   "sessions": {
     "title": "Records",

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { api, ApiError } from '../lib/api';
 import { MIN_PASSWORD_LENGTH } from '../lib/password';
-import { Button, ErrorText, Field, Modal, TextInput } from './ui';
+import { Button, ErrorText, Field, Modal, Notice, TextInput } from './ui';
 
 /** Anyone changing their own password: needs the current one, works for staff and admins alike. */
 export default function ChangePasswordModal({ open, onClose }: { open: boolean; onClose: () => void }) {
@@ -62,7 +62,9 @@ export default function ChangePasswordModal({ open, onClose }: { open: boolean; 
       }
     >
       {done ? (
-        <p className="py-2 text-emerald-700 font-semibold">{t('account.changed')}</p>
+        <div className="pb-2">
+          <Notice>{t('account.changed')}</Notice>
+        </div>
       ) : (
         <>
           <Field label={t('account.currentPassword')}>

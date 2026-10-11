@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { motion } from 'motion/react';
+import { ArrowRight, Warning, WarningOctagon } from '@phosphor-icons/react';
 import { api } from '../lib/api';
 import { systemWarnings } from '../lib/health';
 import type { SystemStatus } from '../lib/types';
+import { EASE_OUT } from './ui';
 
 /** Disk usage and backup age move slowly; five minutes is often enough. */
 const POLL_MS = 5 * 60_000;
@@ -38,26 +41,34 @@ export default function HealthBanner() {
   if (warnings.length === 0) return null;
 
   return (
-    <div className="flex flex-col gap-2 mb-4">
-      {warnings.map((w) => (
-        <div
+    <div className="flex flex-col gap-2 mb-5">
+      {warnings.map((w, i) => (
+        <motion.div
           key={w.key}
-          className={`rounded-xl border p-3 text-sm font-medium flex items-center justify-between gap-3 flex-wrap ${
-            w.level === 'crit'
-              ? 'bg-red-50 border-red-200 text-red-800'
-              : 'bg-amber-50 border-amber-200 text-amber-900'
+          role="alert"
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, ease: EASE_OUT, delay: i * 0.06 }}
+          className={`rounded-2xl p-3 pl-3.5 text-[14px] font-medium flex items-center justify-between gap-3 flex-wrap ${
+            w.level === 'crit' ? 'bg-danger-soft text-danger-text' : 'bg-warn-soft text-warn-text'
           }`}
         >
-          <span>
-            {w.level === 'crit' ? '⛔' : '⚠️'} {t(`system.${w.key}`, { ...w.vars })}
+          <span className="flex items-center gap-2.5">
+            {w.level === 'crit' ? (
+              <WarningOctagon size={20} weight="fill" className="shrink-0" />
+            ) : (
+              <Warning size={20} weight="fill" className="shrink-0" />
+            )}
+            {t(`system.${w.key}`, { ...w.vars })}
           </span>
           <Link
             to="/admin/system"
-            className="underline underline-offset-2 font-semibold shrink-0"
+            className="group inline-flex items-center gap-1.5 h-8 px-3 rounded-full bg-surface/70 font-semibold shrink-0 hover:bg-surface transition-colors"
           >
             {t('system.warnOpen')}
+            <ArrowRight size={14} weight="bold" className="transition-transform group-hover:translate-x-0.5" />
           </Link>
-        </div>
+        </motion.div>
       ))}
     </div>
   );

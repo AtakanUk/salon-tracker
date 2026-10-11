@@ -1,9 +1,11 @@
 import { useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { AnimatePresence, motion } from 'motion/react';
+import { Check, Minus, Plus } from '@phosphor-icons/react';
 import { amountInput, euros, serviceName } from '../lib/format';
 import type { PickedItem, Service, SessionItem } from '../lib/types';
-import { Button, ErrorText, Modal, TextInput } from './ui';
+import { AnimatedNumber, Button, ErrorText, Modal, TextInput, stagger } from './ui';
 
 interface PickerService {
   id: number;
@@ -27,6 +29,9 @@ interface Props {
 
 /** "35,50" or "35.5" -> 3550. NaN when the field is empty or not a number. */
 const toCents = (typed: string) => Math.round(parseFloat(typed.replace(',', '.')) * 100);
+
+const stepBtn =
+  'grid place-items-center size-9 rounded-full bg-surface text-accent-text border border-accent/25 shadow-[0_1px_2px_rgb(0_0_0/.06)] transition-transform duration-150 active:scale-90 cursor-pointer';
 
 export default function ServicePicker({
   services,
@@ -125,9 +130,33 @@ export default function ServicePicker({
   const amountMissing = [...special.values()].some((c) => c.note.trim() && !(toCents(c.amount) > 0));
 
   return (
-    <Modal open onClose={onClose} title={title} wide>
+    <Modal
+      open
+      onClose={onClose}
+      title={title}
+      wide
+      footer={
+        <>
+          <div className="mr-auto flex items-baseline gap-2 min-w-0">
+            <span className="text-[15px] text-ink-2">{t('common.total')}</span>
+            <span className="text-[26px] font-semibold tracking-[-0.03em] tabular-nums">
+              <AnimatedNumber value={totalCents} format={(v) => euros(Math.round(v), lang)} />
+            </span>
+          </div>
+          <div className="flex gap-2.5 items-center flex-wrap justify-end">
+            {extraFooter}
+            <Button variant="secondary" size="lg" onClick={onClose} disabled={busy}>
+              {t('common.cancel')}
+            </Button>
+            <Button size="lg" onClick={() => onSave(items)} disabled={busy || items.length === 0 || amountMissing}>
+              {t('work.saveSession')}
+            </Button>
+          </div>
+        </>
+      }
+    >
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 py-2">
-        {priced.map((s) => {
+        {priced.map((s, i) => {
           const count = qty.get(s.id) ?? 0;
           const selected = count > 0;
           return (
@@ -135,40 +164,67 @@ export default function ServicePicker({
               key={s.id}
               role="button"
               tabIndex={0}
+              aria-pressed={selected}
               onClick={() => setCount(s.id, selected ? 0 : 1)}
               onKeyDown={(e) => e.key === 'Enter' && setCount(s.id, selected ? 0 : 1)}
-              className={`rounded-2xl border-2 p-4 text-left transition-colors cursor-pointer select-none touch-manipulation min-h-24 flex flex-col justify-between ${
+              style={stagger(i)}
+              className={`stagger relative rounded-2xl border p-4 text-left cursor-pointer select-none touch-manipulation min-h-28 flex flex-col justify-between transition-[border-color,background-color,box-shadow,transform] duration-200 ease-out-expo active:scale-[.97] ${
                 selected
-                  ? 'border-emerald-600 bg-emerald-50'
-                  : 'border-slate-200 bg-white hover:border-slate-300'
+                  ? 'border-accent bg-accent-soft shadow-[0_0_0_1px_var(--accent),0_10px_28px_-14px_rgb(0_113_227/.7)]'
+                  : 'border-line bg-surface hover:border-line-strong hover:-translate-y-0.5 hover:shadow-card'
               } ${s.inactive ? 'opacity-70' : ''}`}
             >
-              <div className="font-semibold text-slate-800 text-lg leading-tight">
+              <AnimatePresence>
+                {selected && (
+                  <motion.span
+                    initial={{ scale: 0, rotate: -45 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    exit={{ scale: 0, transition: { duration: 0.12 } }}
+                    transition={{ type: 'spring', bounce: 0.5, duration: 0.45 }}
+                    className="absolute top-3 right-3 grid place-items-center size-6 rounded-full bg-accent text-white"
+                  >
+                    <Check size={13} weight="bold" />
+                  </motion.span>
+                )}
+              </AnimatePresence>
+              <div className="pr-7 text-[17px] font-semibold leading-snug tracking-[-0.01em] text-ink">
                 {serviceName(s, lang)}
               </div>
-              <div className="flex items-center justify-between mt-2">
-                <span className="text-slate-500 font-medium">{euros(s.priceCents, lang)}</span>
+              <div className="flex items-center justify-between gap-2 mt-3 min-h-9">
+                <span className={`font-medium tabular-nums ${selected ? 'text-accent-text' : 'text-ink-2'}`}>
+                  {euros(s.priceCents, lang)}
+                </span>
                 {selected && (
-                  <span
-                    className="flex items-center gap-1"
-                    onClick={(e) => e.stopPropagation()}
-                  >
+                  <span className="flex items-center gap-1" onClick={(e) => e.stopPropagation()}>
                     <button
                       type="button"
-                      className="w-9 h-9 rounded-full bg-white border border-emerald-300 text-emerald-700 text-xl font-bold leading-none"
+                      aria-label="−"
+                      className={stepBtn}
                       onClick={() => setCount(s.id, count - 1)}
                     >
-                      −
+                      <Minus size={15} weight="bold" />
                     </button>
-                    <span className="w-7 text-center font-bold text-emerald-800 text-lg">
-                      {count}
+                    <span className="relative w-7 h-7 overflow-hidden text-center text-[17px] font-semibold text-ink tabular-nums">
+                      <AnimatePresence initial={false} mode="popLayout">
+                        <motion.span
+                          key={count}
+                          className="absolute inset-0 grid place-items-center"
+                          initial={{ y: 14, opacity: 0 }}
+                          animate={{ y: 0, opacity: 1 }}
+                          exit={{ y: -14, opacity: 0 }}
+                          transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                        >
+                          {count}
+                        </motion.span>
+                      </AnimatePresence>
                     </span>
                     <button
                       type="button"
-                      className="w-9 h-9 rounded-full bg-white border border-emerald-300 text-emerald-700 text-xl font-bold leading-none"
+                      aria-label="+"
+                      className={stepBtn}
                       onClick={() => setCount(s.id, count + 1)}
                     >
-                      +
+                      <Plus size={15} weight="bold" />
                     </button>
                   </span>
                 )}
@@ -181,20 +237,21 @@ export default function ServicePicker({
           Full width and dashed on purpose: this one has no price of its own, so
           it should not look like just another tile in the price list.
         */}
-        {specials.map((s) => {
+        {specials.map((s, i) => {
           const entry = special.get(s.id) ?? { amount: '', note: '' };
           const active = toCents(entry.amount) > 0;
           return (
             <div
               key={s.id}
-              className={`col-span-2 sm:col-span-3 rounded-2xl border-2 border-dashed p-4 transition-colors ${
-                active ? 'border-emerald-600 bg-emerald-50' : 'border-slate-300 bg-white'
+              style={stagger(priced.length + i)}
+              className={`stagger col-span-2 sm:col-span-3 rounded-2xl border-[1.5px] border-dashed p-4 transition-colors duration-200 ${
+                active ? 'border-accent bg-accent-soft' : 'border-line-strong bg-surface'
               }`}
             >
-              <div className="font-semibold text-slate-800 text-lg leading-tight">
+              <div className="text-[17px] font-semibold leading-snug tracking-[-0.01em] text-ink">
                 {serviceName(s, lang)}
               </div>
-              <div className="text-sm text-slate-500">{t('work.customHint')}</div>
+              <div className="text-[14px] text-ink-2 mt-0.5">{t('work.customHint')}</div>
 
               <div className="flex flex-col sm:flex-row gap-3 mt-3">
                 <div className="relative sm:w-48 shrink-0 order-first">
@@ -205,13 +262,13 @@ export default function ServicePicker({
                   <TextInput
                     type="text"
                     inputMode="decimal"
-                    className="pr-9 text-right text-xl font-bold"
+                    className="pr-9 text-right text-xl font-semibold tabular-nums"
                     value={entry.amount}
                     placeholder={amountInput(0, lang)}
                     aria-label={t('work.customAmount')}
                     onChange={(e) => editSpecial(s.id, { amount: e.target.value })}
                   />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-xl font-bold">
+                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-ink-2 text-xl font-semibold">
                     €
                   </span>
                 </div>
@@ -229,24 +286,6 @@ export default function ServicePicker({
       </div>
 
       <ErrorText code={error ?? (amountMissing ? 'amount_required' : null)} />
-      <div className="flex items-center justify-between gap-3 py-4 sticky bottom-0 bg-white">
-        <div className="text-2xl font-bold text-slate-800">
-          {t('common.total')}: {euros(totalCents, lang)}
-        </div>
-        <div className="flex gap-3 items-center">
-          {extraFooter}
-          <Button variant="secondary" size="lg" onClick={onClose} disabled={busy}>
-            {t('common.cancel')}
-          </Button>
-          <Button
-            size="lg"
-            onClick={() => onSave(items)}
-            disabled={busy || items.length === 0 || amountMissing}
-          >
-            {t('work.saveSession')}
-          </Button>
-        </div>
-      </div>
     </Modal>
   );
 }
